@@ -57,6 +57,9 @@ body.sc .logo{width:40px;height:40px}
 .tb .pr{text-align:right;flex-shrink:0}.tb .pr small{display:block;font-size:10.5px;color:var(--muted);font-weight:800;text-transform:uppercase}.tb .pr b{font-size:21px;font-weight:900;color:var(--navy)}
 .chip{display:inline-block;font-size:12px;font-weight:900;padding:4px 10px;border-radius:20px;white-space:nowrap;box-shadow:0 6px 14px -8px rgba(0,0,0,.45)}
 .chip.n{background:#e4edfb;color:#1d4f9f}.chip.a{background:#fff1d4;color:#8a5a00}.chip.r{background:#fde2e2;color:#b42318}.chip.h{background:linear-gradient(135deg,#1E9E63,#34c38f);color:#fff}.chip.x{background:#E8323C;color:#fff}
+.sold{position:absolute;inset:0;background:rgba(13,31,60,.38);display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:2}
+.sold span{transform:rotate(-12deg);border:5px solid #fff;color:#fff;background:#E8323C;font-weight:900;font-size:34px;letter-spacing:2px;padding:6px 22px;border-radius:12px;box-shadow:0 12px 30px -10px rgba(0,0,0,.6)}
+.trip .ph img{filter:none}
 .empty{text-align:center;color:var(--muted);font-weight:700;padding:36px 16px;background:#fff;border-radius:20px;box-shadow:var(--sh)}
 .empty b{display:block;font-size:17px;color:var(--ink);margin-bottom:4px}
 .foot{text-align:center;color:var(--muted);font-size:13px;font-weight:700;padding:26px 10px 8px}
@@ -179,7 +182,7 @@ function money(n){n=Math.round((+n||0)*100)/100;return (n%1?n.toFixed(2).replace
 function hoyISO(){var d=new Date(),p=function(n){return (n<10?"0":"")+n};return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())}
 function dias(iso){var a=(""+iso).split("-"),h=hoyISO().split("-");return Math.round((Date.UTC(+a[0],+a[1]-1,+a[2])-Date.UTC(+h[0],+h[1]-1,+h[2]))/864e5)}
 function fLarga(iso){var d=new Date(iso+"T12:00:00");if(isNaN(d))return iso;var s=DIAS[d.getDay()]+" "+d.getDate()+" de "+MESL[d.getMonth()]+" de "+d.getFullYear();return s.charAt(0).toUpperCase()+s.slice(1)}
-function chipD(v){if(v.completo)return '<span class="chip x">Completo</span>';var n=dias(v.fecha);
+function chipD(v){if(v.completo)return '<span class="chip x">SOLD OUT</span>';var n=dias(v.fecha);
  if(n===0)return '<span class="chip h">¡Sale hoy!</span>';if(n===1)return '<span class="chip r">⏳ ¡Mañana!</span>';
  return '<span class="chip '+(n<=3?"r":n<=7?"a":"n")+'">⏳ Faltan '+n+' días</span>'}
 function minH(h){var m=(""+h).match(/(\d{1,2})[:.h](\d{2})/);if(!m)return 9999;var x=+m[1]*60+ +m[2];return x>=18*60?x-1440:x}
@@ -220,20 +223,20 @@ function portada(){var l=lista(),app=document.getElementById("app");
 function tarjeta(v){var d=new Date(v.fecha+"T12:00:00"),src=v.portada?PORT[v.id+"/"+v.portada]:"",s=salidas(v)[0];
  return '<article class="trip" onclick="ir(\'viaje-'+v.id+'\')"><div class="ph">'+
   (v.portada?'<img data-ph="'+v.id+'" alt="'+esc(v.destino)+'" onload="this.classList.add(\'ok\')"'+(src?' src="'+src+'"':"")+'>':'<div class="ini">🚌</div>')+
-  '<div class="shade"></div><div class="fecha"><b>'+d.getDate()+'</b><small>'+MES[d.getMonth()]+'</small></div><div class="cnt">'+chipD(v)+'</div><h3>'+esc(v.destino)+'</h3></div>'+
+  (v.completo?'<div class="sold"><span>SOLD OUT</span></div>':"")+'<div class="shade"></div><div class="fecha"><b>'+d.getDate()+'</b><small>'+MES[d.getMonth()]+'</small></div><div class="cnt">'+chipD(v)+'</div><h3>'+esc(v.destino)+'</h3></div>'+
   '<div class="tb"><div class="m">'+esc(fLarga(v.fecha))+(s&&s.h?'<br>🕐 Salida '+esc(s.h)+(s.p?" · "+esc(s.p):""):"")+'</div><div class="pr"><small>Desde</small><b>'+money(Math.min(v.precioA||0,v.precioN||v.precioA||0)||v.precioA||0)+'</b></div></div></article>'}
 function pie(){return '<div class="foot">¿Dudas? Escríbenos por WhatsApp al <a href="'+waLink("Hola, tengo una duda sobre las excursiones")+'" target="_blank" rel="noopener">'+esc(fmtTel(waNum()))+'</a><br>Yo Me Voy Excursiones · Madrid</div>'}
 function fmtTel(t){return (t||"").replace(/(\d{3})(\d{3})(\d{3})/,"$1 $2 $3")}
 function detalle(id){var v=Object.assign({id:id},VJ[id]),app=document.getElementById("app"),sal=salidas(v);
  var h='<button class="back" onclick="ir(\'\')">‹ Todos los viajes</button>'+
-  '<div class="gal" id="gal">'+galeria(FOTOS[id],v)+'</div>'+
+  '<div class="gal" id="gal">'+galeria(FOTOS[id],v)+(v.completo?'<div class="sold"><span>SOLD OUT</span></div>':"")+'</div>'+
   '<div class="dh"><h1>'+esc(v.destino)+'</h1><div class="f">📅 '+esc(fLarga(v.fecha))+'</div><div class="rw">'+chipD(v)+'<button class="share" onclick="compartir(\''+id+'\')">↗ Compartir</button></div></div>'+
   '<div class="box"><h2>💶 Precio por persona</h2><div class="prs"><div><b>'+money(v.precioA)+'</b><small>Adulto</small></div><div><b>'+money(v.precioN)+'</b><small>Niño 3 a 9 años</small></div><div><b>Gratis</b><small>Bebé 0 a 2 años (sin asiento)</small></div></div>'+
   (CFG.senal?'<div class="hint" style="margin-top:9px">Reserva tu plaza con una señal de '+money(CFG.senal)+' por persona. El resto se paga al subir al autobús.</div>':"")+'</div>'+
   (sal.length?'<div class="box"><h2>🚌 Salidas desde Madrid</h2><div class="sal">'+sal.map(function(x){return '<div><i>📍</i><span>'+esc(x.p)+'</span><b>'+esc(x.h||"—")+'</b></div>'}).join("")+'</div>'+
    '<div class="hint">Llega 10 minutos antes. Los asientos se asignan por orden de llegada.</div>'+(v.regreso?'<div class="sal" style="margin-top:6px"><div><i>🔙</i><span>Regreso desde '+esc(v.destino)+'</span><b>'+esc(v.regreso)+'</b></div></div>':"")+'</div>':"")+
   (v.descripcion?'<div class="box"><h2>🗺️ El viaje</h2><div class="desc">'+esc(v.descripcion)+'</div></div>':"")+
-  '<div class="cta">'+(v.completo?'<button class="btn" disabled>Viaje completo</button><a class="btn bw" style="margin-top:8px" href="'+waLink("Hola, ¿queda alguna plaza o lista de espera para "+v.destino+" ("+v.fecha+")?")+'" target="_blank" rel="noopener">💬 Preguntar por lista de espera</a>'
+  '<div class="cta">'+(v.completo?'<button class="btn" disabled>SOLD OUT · Plazas agotadas</button><a class="btn bw" style="margin-top:8px" href="'+waLink("Hola, ¿queda alguna plaza o lista de espera para "+v.destino+" ("+v.fecha+")?")+'" target="_blank" rel="noopener">💬 Preguntar por lista de espera</a>'
    :'<button class="btn bgold" onclick="reservar(\''+id+'\')">Reservar mi plaza</button>')+'</div>'+pie();
  app.innerHTML=h;
  if(!FOTOS[id]&&v.nfotos)cargaFotos(id).then(function(a){var g=document.getElementById("gal");if(g&&location.hash==="#viaje-"+id){g.innerHTML=galeria(a,v);iniGal()}});else iniGal()}
