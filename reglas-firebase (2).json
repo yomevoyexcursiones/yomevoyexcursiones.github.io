@@ -1,0 +1,388 @@
+{
+  "rules": {
+    "gestor_embarque": {
+      ".read": "auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('rol').val() === 'admin' && root.child('usuarios').child(auth.uid).child('activo').val() === true))",
+      "counters": {
+        "$c": {
+          ".read": "(auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('activo').val() === true && root.child('usuarios').child(auth.uid).child('rol').val() !== 'encargado'))) && $c === 'loc'",
+          ".write": "(auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('rol').val() === 'admin' && root.child('usuarios').child(auth.uid).child('activo').val() === true))) || ((auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('activo').val() === true && root.child('usuarios').child(auth.uid).child('rol').val() !== 'encargado'))) && $c === 'loc')"
+        }
+      },
+      "clientes": {
+        "$tel": {
+          ".write": "auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('rol').val() === 'admin' && root.child('usuarios').child(auth.uid).child('activo').val() === true))"
+        }
+      },
+      "viajes": {
+        "$vid": {
+          ".write": "auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('rol').val() === 'admin' && root.child('usuarios').child(auth.uid).child('activo').val() === true))",
+          "pasajeros": {
+            "$pid": {
+              ".read": "(auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('activo').val() === true && root.child('usuarios').child(auth.uid).child('rol').val() !== 'encargado'))) && data.child('vuid').val() === auth.uid",
+              ".write": "(auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('rol').val() === 'admin' && root.child('usuarios').child(auth.uid).child('activo').val() === true))) || ((auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('activo').val() === true && root.child('usuarios').child(auth.uid).child('rol').val() !== 'encargado'))) && newData.exists() && newData.child('vuid').val() === auth.uid && ((!data.exists() && newData.child('estado').val() === 'pendiente' && newData.child('embarcado').val() !== true && newData.child('cobrado').val() !== true && !newData.child('apr').exists()) || (data.child('vuid').val() === auth.uid && root.child('cambios').child(auth.uid).child($pid).child('estado').val() === 'aprobado' && root.child('cambios').child(auth.uid).child($pid).child('exp').val() > now && (newData.child('embarcado').val() === true) === (data.child('embarcado').val() === true) && (newData.child('cobrado').val() === true) === (data.child('cobrado').val() === true) && newData.child('localizador').val() === data.child('localizador').val() && newData.child('estado').val() === data.child('estado').val() && newData.child('apr').val() === data.child('apr').val())))",
+              "recibos": {
+                "$rid": {
+                  ".write": "(auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('activo').val() === true && root.child('usuarios').child(auth.uid).child('rol').val() !== 'encargado'))) && !data.exists() && newData.exists() && data.parent().parent().child('vuid').val() === auth.uid"
+                }
+              },
+              "embarcado": {
+                ".write": "(auth != null && root.child('usuarios').child(auth.uid).child('activo').val() === true && root.child('usuarios').child(auth.uid).child('rol').val() === 'encargado') && root.child('embarque_mis').child(auth.uid).child($vid).val() === true",
+                ".validate": "newData.isBoolean()"
+              },
+              "cobrado": {
+                ".write": "(auth != null && root.child('usuarios').child(auth.uid).child('activo').val() === true && root.child('usuarios').child(auth.uid).child('rol').val() === 'encargado') && root.child('embarque_mis').child(auth.uid).child($vid).val() === true",
+                ".validate": "newData.isBoolean()"
+              },
+              "viajeros": {
+                ".write": "(auth != null && root.child('usuarios').child(auth.uid).child('activo').val() === true && root.child('usuarios').child(auth.uid).child('rol').val() === 'encargado') && root.child('embarque_mis').child(auth.uid).child($vid).val() === true",
+                "$i": {
+                  "nombre": {
+                    ".validate": "!(auth != null && root.child('usuarios').child(auth.uid).child('activo').val() === true && root.child('usuarios').child(auth.uid).child('rol').val() === 'encargado') || newData.val() === data.val()"
+                  },
+                  "tipo": {
+                    ".validate": "!(auth != null && root.child('usuarios').child(auth.uid).child('activo').val() === true && root.child('usuarios').child(auth.uid).child('rol').val() === 'encargado') || newData.val() === data.val()"
+                  }
+                }
+              }
+            }
+          },
+          ".read": "(auth != null && root.child('usuarios').child(auth.uid).child('activo').val() === true && root.child('usuarios').child(auth.uid).child('rol').val() === 'encargado') && root.child('embarque_mis').child(auth.uid).child($vid).val() === true"
+        }
+      }
+    },
+    "recibos": {
+      ".read": "auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('rol').val() === 'admin' && root.child('usuarios').child(auth.uid).child('activo').val() === true))",
+      "$vid": {
+        "$pid": {
+          ".read": "(auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('activo').val() === true && root.child('usuarios').child(auth.uid).child('rol').val() !== 'encargado'))) && root.child('gestor_embarque').child('viajes').child($vid).child('pasajeros').child($pid).child('vuid').val() === auth.uid",
+          "$rid": {
+            ".write": "(auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('rol').val() === 'admin' && root.child('usuarios').child(auth.uid).child('activo').val() === true))) || ((auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('activo').val() === true && root.child('usuarios').child(auth.uid).child('rol').val() !== 'encargado'))) && !data.exists() && newData.exists() && root.child('gestor_embarque').child('viajes').child($vid).child('pasajeros').child($pid).child('vuid').val() === auth.uid)",
+            ".validate": "newData.hasChildren(['data','ts','uid']) && newData.child('data').val().length < 1000000 && newData.child('ts').val() === now"
+          }
+        }
+      }
+    },
+    "usuarios": {
+      ".read": "auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('rol').val() === 'admin' && root.child('usuarios').child(auth.uid).child('activo').val() === true))",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "(auth != null && auth.token.email === 'sergio@yomevoy.app') || ((auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('rol').val() === 'admin' && root.child('usuarios').child(auth.uid).child('activo').val() === true))) && data.child('rol').val() !== 'admin' && newData.child('rol').val() !== 'admin')"
+      }
+    },
+    "usernames": {
+      "$u": {
+        ".read": true,
+        ".write": "auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('rol').val() === 'admin' && root.child('usuarios').child(auth.uid).child('activo').val() === true))"
+      }
+    },
+    "presencia": {
+      ".read": "auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('rol').val() === 'admin' && root.child('usuarios').child(auth.uid).child('activo').val() === true))",
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid && (auth != null && (auth.token.email === 'sergio@yomevoy.app' || root.child('usuarios').child(auth.uid).child('activo').val() === true))"
+      }
+    },
+    "registro": {
+      ".read": "auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('rol').val() === 'admin' && root.child('usuarios').child(auth.uid).child('activo').val() === true))",
+      ".indexOn": [
+        "ts"
+      ],
+      "$id": {
+        ".write": "(auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('rol').val() === 'admin' && root.child('usuarios').child(auth.uid).child('activo').val() === true))) || ((auth != null && (auth.token.email === 'sergio@yomevoy.app' || root.child('usuarios').child(auth.uid).child('activo').val() === true)) && !data.exists() && newData.child('uid').val() === auth.uid)",
+        ".validate": "newData.hasChildren(['ts','uid','usuario']) && newData.child('ts').val() === now"
+      }
+    },
+    "resumen_publico": {
+      ".read": true,
+      ".write": "auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('rol').val() === 'admin' && root.child('usuarios').child(auth.uid).child('activo').val() === true))",
+      "$vid": {
+        "plazas": {
+          ".write": "auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('activo').val() === true && root.child('usuarios').child(auth.uid).child('rol').val() !== 'encargado'))",
+          ".validate": "newData.isNumber()"
+        }
+      }
+    },
+    "web_publica": {
+      ".read": true,
+      "viajes": {
+        ".write": "auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('rol').val() === 'admin' && root.child('usuarios').child(auth.uid).child('activo').val() === true))"
+      },
+      "config": {
+        ".write": "auth != null && auth.token.email === 'sergio@yomevoy.app'",
+        ".validate": "newData.hasChildren() || !newData.exists()"
+      },
+      "resenas": {
+        ".write": "auth != null && auth.token.email === 'sergio@yomevoy.app'"
+      }
+    },
+    "web_fotos": {
+      ".read": true,
+      "$vid": {
+        "$fid": {
+          ".write": "auth != null && auth.token.email === 'sergio@yomevoy.app'",
+          ".validate": "newData.hasChildren(['d','ts']) && newData.child('d').isString() && newData.child('d').val().beginsWith('data:image/') && newData.child('d').val().length < 450000"
+        }
+      }
+    },
+    "solicitudes": {
+      ".read": "auth != null && auth.token.email === 'sergio@yomevoy.app'",
+      ".indexOn": [
+        "ts",
+        "estado"
+      ],
+      "$sid": {
+        ".write": "(!data.exists() && newData.exists()) || (auth != null && auth.token.email === 'sergio@yomevoy.app')",
+        ".validate": "newData.hasChildren(['vId','nombre','tel','adultos','importe','ts','estado']) && (data.exists() || (newData.child('ts').val() === now && newData.child('estado').val() === 'pendiente' && root.child('web_publica').child('viajes').child(newData.child('vId').val()).exists() && root.child('web_publica').child('viajes').child(newData.child('vId').val()).child('completo').val() !== true))",
+        "vId": {
+          ".validate": "newData.isString() && newData.val().length <= 40"
+        },
+        "destino": {
+          ".validate": "newData.isString() && newData.val().length <= 120"
+        },
+        "fecha": {
+          ".validate": "newData.isString() && newData.val().length <= 12"
+        },
+        "nombre": {
+          ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 80"
+        },
+        "tel": {
+          ".validate": "newData.isString() && newData.val().length >= 9 && newData.val().length <= 15"
+        },
+        "email": {
+          ".validate": "newData.isString() && newData.val().length <= 100"
+        },
+        "adultos": {
+          ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 20"
+        },
+        "ninos": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 20"
+        },
+        "bebes": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 20"
+        },
+        "recogida": {
+          ".validate": "newData.isString() && newData.val().length <= 80"
+        },
+        "acomp": {
+          ".validate": "newData.isString() && newData.val().length <= 500"
+        },
+        "nota": {
+          ".validate": "newData.isString() && newData.val().length <= 500"
+        },
+        "importe": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 5000"
+        },
+        "ts": {
+          ".validate": "newData.isNumber()"
+        },
+        "estado": {
+          ".validate": "newData.val() === 'pendiente' || newData.val() === 'aprobada' || newData.val() === 'rechazada'"
+        },
+        "doc": {
+          ".validate": "newData.isBoolean()"
+        },
+        "pId": {
+          ".validate": "newData.isString()"
+        },
+        "localizador": {
+          ".validate": "newData.isString()"
+        },
+        "por": {
+          ".validate": "newData.isString()"
+        },
+        "tsr": {
+          ".validate": "newData.isNumber()"
+        },
+        "motivo": {
+          ".validate": "newData.isString() && newData.val().length <= 200"
+        },
+        "$otro": {
+          ".validate": false
+        }
+      }
+    },
+    "solicitudes_doc": {
+      ".read": "auth != null && auth.token.email === 'sergio@yomevoy.app'",
+      "$sid": {
+        ".write": "(!data.exists() && newData.exists() && root.child('solicitudes').child($sid).child('estado').val() === 'pendiente') || (auth != null && auth.token.email === 'sergio@yomevoy.app')",
+        ".validate": "!newData.exists() || (newData.hasChildren(['tipo','data','ts']) && newData.child('data').isString() && newData.child('data').val().length < 1000000 && (newData.child('data').val().beginsWith('data:image/') || newData.child('data').val().beginsWith('data:application/pdf')) && newData.child('ts').val() === now)"
+      }
+    },
+    "clientes_app": {
+      ".read": "auth != null && auth.token.email === 'sergio@yomevoy.app'",
+      "$tel": {
+        ".write": "(!data.exists() && newData.exists()) || (auth != null && auth.token.email === 'sergio@yomevoy.app')",
+        ".validate": "$tel.matches(/^[0-9]{9}$/) && newData.hasChildren(['nombre','tel','ts']) && newData.child('tel').val() === $tel",
+        "nombre": {
+          ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 80"
+        },
+        "tel": {
+          ".validate": "newData.isString()"
+        },
+        "email": {
+          ".validate": "newData.isString() && newData.val().length <= 100"
+        },
+        "ts": {
+          ".validate": "newData.isNumber()"
+        },
+        "ult": {
+          ".write": "data.parent().exists()",
+          ".validate": "newData.isNumber() && newData.val() <= now"
+        },
+        "visitas": {
+          ".write": "data.parent().exists()",
+          ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 100000"
+        },
+        "consent": {
+          ".validate": "newData.isBoolean()"
+        },
+        "origen": {
+          ".validate": "newData.isString() && newData.val().length <= 20"
+        },
+        "$otro": {
+          ".validate": false
+        }
+      }
+    },
+    "presencia_app": {
+      ".read": "auth != null && auth.token.email === 'sergio@yomevoy.app'",
+      "$sid": {
+        ".write": "$sid.length <= 24",
+        ".validate": "newData.hasChildren(['vista','ts','desde']) && newData.child('ts').val() === now",
+        "nombre": {
+          ".validate": "newData.isString() && newData.val().length <= 80"
+        },
+        "tel": {
+          ".validate": "newData.isString() && newData.val().length <= 15"
+        },
+        "vista": {
+          ".validate": "newData.isString() && newData.val().length <= 80"
+        },
+        "disp": {
+          ".validate": "newData.isString() && newData.val().length <= 20"
+        },
+        "desde": {
+          ".validate": "newData.isNumber()"
+        },
+        "ts": {
+          ".validate": "newData.isNumber()"
+        },
+        "$otro": {
+          ".validate": false
+        }
+      }
+    },
+    "vend_idx": {
+      ".read": "auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('rol').val() === 'admin' && root.child('usuarios').child(auth.uid).child('activo').val() === true))",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        "$vid": {
+          "$pid": {
+            ".write": "(auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('rol').val() === 'admin' && root.child('usuarios').child(auth.uid).child('activo').val() === true))) || (auth != null && auth.uid === $uid && (auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('activo').val() === true && root.child('usuarios').child(auth.uid).child('rol').val() !== 'encargado'))) && !data.exists() && newData.val() === true)"
+          }
+        }
+      }
+    },
+    "cambios": {
+      ".read": "auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('rol').val() === 'admin' && root.child('usuarios').child(auth.uid).child('activo').val() === true))",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        "$pid": {
+          ".write": "(auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('rol').val() === 'admin' && root.child('usuarios').child(auth.uid).child('activo').val() === true))) || (auth != null && auth.uid === $uid && (auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('activo').val() === true && root.child('usuarios').child(auth.uid).child('rol').val() !== 'encargado'))) && newData.exists() && (newData.child('estado').val() === 'pendiente' || (newData.child('estado').val() === 'usado' && data.child('estado').val() === 'aprobado')) && root.child('gestor_embarque').child('viajes').child(newData.child('vId').val()).child('pasajeros').child($pid).child('vuid').val() === auth.uid && (newData.child('estado').val() === 'usado' || !newData.child('exp').exists()))",
+          ".validate": "newData.hasChildren(['vId','estado'])",
+          "texto": {
+            ".validate": "newData.isString() && newData.val().length <= 500"
+          }
+        }
+      }
+    },
+    "caja": {
+      ".read": "auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('rol').val() === 'admin' && root.child('usuarios').child(auth.uid).child('activo').val() === true))",
+      "$vid": {
+        ".read": "(auth != null && root.child('usuarios').child(auth.uid).child('activo').val() === true && root.child('usuarios').child(auth.uid).child('rol').val() === 'encargado') && root.child('embarque_mis').child(auth.uid).child($vid).val() === true",
+        "$cid": {
+          ".write": "(auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('rol').val() === 'admin' && root.child('usuarios').child(auth.uid).child('activo').val() === true))) || ((auth != null && root.child('usuarios').child(auth.uid).child('activo').val() === true && root.child('usuarios').child(auth.uid).child('rol').val() === 'encargado') && root.child('embarque_mis').child(auth.uid).child($vid).val() === true && newData.exists() && newData.child('uid').val() === auth.uid && (!data.exists() || (data.child('uid').val() === auth.uid && now - data.child('ts').val() < 600000)))",
+          ".validate": "newData.hasChildren(['pid','uid','importe','ts','metodo']) && newData.child('importe').isNumber() && newData.child('importe').val() > 0 && (data.exists() || newData.child('ts').val() === now) && (newData.child('metodo').val() === 'Efectivo' || newData.child('metodo').val() === 'Bizum')"
+        }
+      }
+    },
+    "embarque_mis": {
+      ".read": "auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('rol').val() === 'admin' && root.child('usuarios').child(auth.uid).child('activo').val() === true))",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('rol').val() === 'admin' && root.child('usuarios').child(auth.uid).child('activo').val() === true))"
+      }
+    },
+    "espera": {
+      ".read": "auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('rol').val() === 'admin' && root.child('usuarios').child(auth.uid).child('activo').val() === true))",
+      "$vid": {
+        "$tel": {
+          ".write": "(!data.exists() && newData.exists() && root.child('web_publica').child('viajes').child($vid).exists()) || (auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('rol').val() === 'admin' && root.child('usuarios').child(auth.uid).child('activo').val() === true)))",
+          ".validate": "!newData.exists() || ($tel.matches(/^[0-9]{9}$/) && newData.hasChildren(['nombre','tel','plazas','ts']) && newData.child('tel').val() === $tel)",
+          "nombre": {
+            ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 80"
+          },
+          "tel": {
+            ".validate": "newData.isString()"
+          },
+          "plazas": {
+            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 20"
+          },
+          "ts": {
+            ".validate": "newData.isNumber()"
+          },
+          "estado": {
+            ".validate": "newData.val() === 'espera' || newData.val() === 'avisado'"
+          },
+          "tsa": {
+            ".validate": "newData.isNumber()"
+          },
+          "$otro": {
+            ".validate": false
+          }
+        }
+      }
+    },
+    "liquidacion": {
+      ".read": "auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('rol').val() === 'admin' && root.child('usuarios').child(auth.uid).child('activo').val() === true))",
+      ".write": "auth != null && (auth.token.email === 'sergio@yomevoy.app' || (root.child('usuarios').child(auth.uid).child('rol').val() === 'admin' && root.child('usuarios').child(auth.uid).child('activo').val() === true))"
+    },
+    "valoraciones": {
+      ".read": "auth != null && auth.token.email === 'sergio@yomevoy.app'",
+      "$id": {
+        ".write": "(!data.exists() && newData.exists() && root.child('resumen_publico').child(newData.child('vId').val()).exists()) || (auth != null && auth.token.email === 'sergio@yomevoy.app')",
+        ".validate": "!newData.exists() || (newData.hasChildren(['vId','nombre','tel','estrellas','ts']) && (data.exists() || newData.child('ts').val() === now))",
+        "vId": {
+          ".validate": "newData.isString() && newData.val().length <= 40"
+        },
+        "destino": {
+          ".validate": "newData.isString() && newData.val().length <= 120"
+        },
+        "nombre": {
+          ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 80"
+        },
+        "tel": {
+          ".validate": "newData.isString() && newData.val().length <= 15"
+        },
+        "estrellas": {
+          ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 5"
+        },
+        "texto": {
+          ".validate": "newData.isString() && newData.val().length <= 400"
+        },
+        "ts": {
+          ".validate": "newData.isNumber()"
+        },
+        "pub": {
+          ".validate": "newData.isBoolean()"
+        },
+        "$otro": {
+          ".validate": false
+        }
+      }
+    },
+    "$otro": {
+      ".read": "$otro !== 'gestor_embarque' && $otro !== 'usuarios' && $otro !== 'usernames' && $otro !== 'presencia' && $otro !== 'registro' && $otro !== 'resumen_publico' && $otro !== 'recibos' && $otro !== 'web_publica' && $otro !== 'web_fotos' && $otro !== 'solicitudes' && $otro !== 'solicitudes_doc' && $otro !== 'clientes_app' && $otro !== 'presencia_app' && $otro !== 'vend_idx' && $otro !== 'cambios' && $otro !== 'caja' && $otro !== 'embarque_mis' && $otro !== 'espera' && $otro !== 'liquidacion' && $otro !== 'valoraciones'",
+      ".write": "$otro !== 'gestor_embarque' && $otro !== 'usuarios' && $otro !== 'usernames' && $otro !== 'presencia' && $otro !== 'registro' && $otro !== 'resumen_publico' && $otro !== 'recibos' && $otro !== 'web_publica' && $otro !== 'web_fotos' && $otro !== 'solicitudes' && $otro !== 'solicitudes_doc' && $otro !== 'clientes_app' && $otro !== 'presencia_app' && $otro !== 'vend_idx' && $otro !== 'cambios' && $otro !== 'caja' && $otro !== 'embarque_mis' && $otro !== 'espera' && $otro !== 'liquidacion' && $otro !== 'valoraciones'"
+    }
+  }
+}

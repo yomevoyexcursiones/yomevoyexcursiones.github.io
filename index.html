@@ -152,6 +152,13 @@ textarea{min-height:70px;resize:vertical}
 .big .ck{font-size:15px}.big .ck i{width:30px;height:30px;border-radius:9px;font-size:18px}
 .lnk{display:block;width:100%;background:none;border:0;color:var(--muted);font-weight:800;font-size:15px;padding:12px;margin-top:4px;cursor:pointer;text-decoration:underline}
 .hola-c{font-size:13px;margin-top:8px;position:relative}.hola-c a{color:#FFD76A;font-weight:800;cursor:pointer;text-decoration:underline}
+.stars{display:flex;justify-content:center;gap:6px;margin:6px 0 4px}
+.stars button{border:0;background:none;font-size:48px;line-height:1;color:#d5dee8;cursor:pointer;padding:2px;transition:transform .12s,color .12s}
+.stars button.on{color:#F6A623}.stars button:active{transform:scale(.88)}
+.revs{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px;scrollbar-width:none}.revs::-webkit-scrollbar{display:none}
+.rev{flex:0 0 82%;max-width:340px;scroll-snap-align:start;background:#fff;border-radius:18px;padding:14px 16px;box-shadow:var(--sh);border:1px solid rgba(225,232,240,.9)}
+.rev .st{color:#F6A623;font-size:19px;letter-spacing:1px}.rev .st span{color:#d5dee8}
+.rev p{font-size:15px;color:#2b3b4d;margin:6px 0 8px}.rev small{color:var(--muted);font-size:12.5px}
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 90px);transform:translateX(-50%) translateY(10px);background:linear-gradient(135deg,#0D1F3C,#1d4f86);color:#fff;padding:11px 16px;border-radius:14px;font-weight:800;font-size:14px;opacity:0;transition:.2s;z-index:60;pointer-events:none;max-width:90vw;text-align:center}
 .toast.s{opacity:1;transform:translateX(-50%)}
 .sk{background:linear-gradient(90deg,#e6edf5 0,#f4f7fb 40%,#e6edf5 80%);background-size:300% 100%;animation:sk 1.3s linear infinite;border-radius:20px;height:250px}
@@ -210,7 +217,7 @@ function ir(h){if(location.hash!=="#"+h&&(h||location.hash))location.hash=h;else
 window.addEventListener("hashchange",function(){window.scrollTo(0,0);pinta()});
 function pinta(){if(VJ===null)return;var h=location.hash.replace("#",""),app=document.getElementById("app");
  var key=h.indexOf("viaje-")===0?h:"lista";if(key!==VIEW){VIEW=key;app.classList.remove("enter");void app.offsetWidth;app.classList.add("enter");setTimeout(function(){app.classList.remove("enter")},800)}
- if(h.indexOf("viaje-")===0&&VJ[h.slice(6)]){vista("Mirando "+VJ[h.slice(6)].destino);return detalle(h.slice(6))}vista("Viendo la lista de viajes");portada()}
+ if(h.indexOf("valorar-")===0)return valorar(h.slice(8));if(h.indexOf("viaje-")===0&&VJ[h.slice(6)]){vista("Mirando "+VJ[h.slice(6)].destino);return detalle(h.slice(6))}vista("Viendo la lista de viajes");portada()}
 function portada(){var l=lista(),app=document.getElementById("app");
  var pts={};l.forEach(function(v){salidas(v).forEach(function(x){pts[x.p]=1})});var pk=Object.keys(pts).slice(0,4);
  var nm=yaReg()?(REG.nombre||"").split(" ")[0]:"";
@@ -219,7 +226,7 @@ function portada(){var l=lista(),app=document.getElementById("app");
   (nm?'<div class="hola-c">¿No eres '+esc(nm)+'? <a onclick="cambiaUsuario()">Cambiar</a></div>':'<div class="hola-c"><a onclick="pideRegistro(\'bienvenida\')">Regístrate para recibir nuestros viajes</a></div>')+'</section>';
  if(!l.length)h+='<div class="empty"><b>Pronto publicaremos nuevas excursiones</b>Mientras tanto, escríbenos por WhatsApp y te avisamos.<a class="btn bw" style="margin-top:14px" href="'+waLink("Hola, quiero información de las próximas excursiones")+'" target="_blank" rel="noopener">💬 Escribir por WhatsApp</a></div>';
  else h+='<div class="sec">'+l.length+' viaje'+(l.length===1?"":"s")+' disponible'+(l.length===1?"":"s")+'</div><div class="grid">'+l.map(tarjeta).join("")+'</div>';
- h+=pie();app.innerHTML=h;l.forEach(cargaPortada)}
+ h+=resenasHTML()+pie();app.innerHTML=h;l.forEach(cargaPortada)}
 function tarjeta(v){var d=new Date(v.fecha+"T12:00:00"),src=v.portada?PORT[v.id+"/"+v.portada]:"",s=salidas(v)[0];
  return '<article class="trip" onclick="ir(\'viaje-'+v.id+'\')"><div class="ph">'+
   (v.portada?'<img data-ph="'+v.id+'" alt="'+esc(v.destino)+'" onload="this.classList.add(\'ok\')"'+(src?' src="'+src+'"':"")+'>':'<div class="ini">🚌</div>')+
@@ -236,7 +243,7 @@ function detalle(id){var v=Object.assign({id:id},VJ[id]),app=document.getElement
   (sal.length?'<div class="box"><h2>🚌 Salidas desde Madrid</h2><div class="sal">'+sal.map(function(x){return '<div><i>📍</i><span>'+esc(x.p)+'</span><b>'+esc(x.h||"—")+'</b></div>'}).join("")+'</div>'+
    '<div class="hint">Llega 10 minutos antes. Los asientos se asignan por orden de llegada.</div>'+(v.regreso?'<div class="sal" style="margin-top:6px"><div><i>🔙</i><span>Regreso desde '+esc(v.destino)+'</span><b>'+esc(v.regreso)+'</b></div></div>':"")+'</div>':"")+
   (v.descripcion?'<div class="box"><h2>🗺️ El viaje</h2><div class="desc">'+esc(v.descripcion)+'</div></div>':"")+
-  '<div class="cta">'+(v.completo?'<button class="btn" disabled>SOLD OUT · Plazas agotadas</button><a class="btn bw" style="margin-top:8px" href="'+waLink("Hola, ¿queda alguna plaza o lista de espera para "+v.destino+" ("+v.fecha+")?")+'" target="_blank" rel="noopener">💬 Preguntar por lista de espera</a>'
+  '<div class="cta">'+(v.completo?'<button class="btn" disabled>SOLD OUT · Plazas agotadas</button><button class="btn bw" style="margin-top:8px" onclick="espera(\''+id+'\')">'+(ls("esp_"+id)?"✓ Estás en la lista de espera":"📝 Apuntarme a la lista de espera")+'</button>'
    :'<button class="btn bgold" onclick="reservar(\''+id+'\')">Reservar mi plaza</button>')+'</div>'+pie();
  app.innerHTML=h;
  if(!FOTOS[id]&&v.nfotos)cargaFotos(id).then(function(a){var g=document.getElementById("gal");if(g&&location.hash==="#viaje-"+id){g.innerHTML=galeria(a,v);iniGal()}});else iniGal()}
@@ -278,7 +285,7 @@ function cnt(k,t,s){return '<div class="cn"><div><b>'+t+'</b><small>'+esc(s)+'</
 function mas(k,n){F[k]=Math.max(k==="ad"?1:0,Math.min(20,F[k]+n));document.getElementById("f-"+k).textContent=F[k];totF()}
 function opsRec(sal){return sal.map(function(x,i){return '<div class="op'+(F.rec===x.p?" on":"")+'" onclick="selRec('+i+')"><i></i>'+esc(x.p)+(x.h?'<b>'+esc(x.h)+'</b>':"")+'</div>'}).join("")}
 function selRec(i){var sal=salidas(VJ[F.id]);F.rec=sal[i].p;document.getElementById("f-rec").innerHTML=opsRec(sal)}
-function totF(){var v=VJ[F.id],t=F.ad*(+v.precioA||0)+F.ni*(+v.precioN||0),pl=F.ad+F.ni;
+function totF(){if(!document.getElementById("f-tot"))return;var v=VJ[F.id],t=F.ad*(+v.precioA||0)+F.ni*(+v.precioN||0),pl=F.ad+F.ni;
  document.getElementById("f-tot").innerHTML='<div class="r"><span>'+pl+' plaza'+(pl===1?"":"s")+(F.be?" + "+F.be+" bebé"+(F.be>1?"s":""):"")+'</span><span>'+money(t)+'</span></div>'+
   (CFG.senal?'<div class="r"><span>Señal para reservar ('+money(CFG.senal)+' × '+pl+')</span><span>'+money(CFG.senal*pl)+'</span></div><div class="r g"><span>Resto al subir al bus</span><span>'+money(Math.max(0,t-CFG.senal*pl))+'</span></div>':'<div class="r g"><span>Total del viaje</span><span>'+money(t)+'</span></div>');
  var i=document.getElementById("f-imp");if(i&&CFG.senal&&!i.dataset.tocado)i.value=CFG.senal*pl;if(i&&!i.oninput)i.oninput=function(){i.dataset.tocado=1}}
@@ -366,6 +373,48 @@ function actPres(){if(!PRES_REF||document.hidden)return;PRES_REF.set({nombre:(RE
 DBR.ref(".info/connected").on("value",function(s){if(s.val()!==true)return;PRES_REF=DBR.ref("presencia_app/"+PRES_ID);PRES_REF.onDisconnect().remove();actPres()});
 document.addEventListener("visibilitychange",function(){if(!PRES_REF)return;if(document.hidden)PRES_REF.remove().catch(function(){});else actPres()});
 setInterval(actPres,120000);
+
+/* ---- lista de espera ---- */
+function espera(id){if(!yaReg())return pideRegistro("reservar",function(){espera(id)});var v=VJ[id];if(!v)return;
+ if(ls("esp_"+id)){toast("Ya estás en la lista de espera. Te avisaremos por WhatsApp.");return}
+ F={id:id,ad:1,ni:0,be:0};
+ sheet('<h2>📝 Lista de espera · '+esc(v.destino)+'</h2><div class="s">'+esc(fLarga(v.fecha))+'</div>',
+  '<div class="big"><p style="font-size:16px;margin-top:8px">Si se libera alguna plaza, te avisaremos por WhatsApp al <b>'+esc(fmtTel(REG.tel))+'</b>. Se la damos al primero que confirme.</p>'+
+  '<label>¿Cuántas plazas necesitas?</label>'+cnt("ad","Plazas","Adultos y niños")+'<div class="err" id="e-err"></div></div>',
+  '<button class="btn bgold" id="e-ok" onclick="apuntaEspera()">Apuntarme</button>')}
+function apuntaEspera(){var id=F.id,b=document.getElementById("e-ok");b.disabled=true;b.textContent="Guardando…";
+ DBR.ref("espera/"+id+"/"+REG.tel).set({nombre:REG.nombre.slice(0,80),tel:REG.tel,plazas:F.ad,ts:SV.TIMESTAMP,estado:"espera"})
+  .then(function(){ls("esp_"+id,1);sheet('<h2>¡Apuntado!</h2>','<div class="okv"><div class="ic">✓</div><h3>Estás en la lista, '+esc(REG.nombre.split(" ")[0])+'</h3><p>Si se libera una plaza para <b>'+esc(VJ[id].destino)+'</b> te escribiremos por WhatsApp.</p></div>','<button class="btn bg2" onclick="cerrar();pinta()">Cerrar</button>')})
+  .catch(function(e){var pr=/permission/i.test((e&&e.code||"")+(e&&e.message||""));if(pr){ls("esp_"+id,1);cerrar();toast("Ya estabas en la lista de espera");pinta();return}
+   b.disabled=false;b.textContent="Apuntarme";document.getElementById("e-err").textContent="No se pudo guardar. Revisa tu conexión."})}
+/* ---- valorar un viaje ---- */
+var VAL={e:0};
+function valorar(id){vista("Valorando un viaje");var app=document.getElementById("app");app.innerHTML='<div class="sk"></div>';
+ DBR.ref("resumen_publico/"+id).once("value").then(function(s){var r=s.val();
+  if(!r||!r.destino){app.innerHTML='<div class="empty"><b>Enlace no válido</b>No encontramos este viaje.</div>'+pie();return}
+  if(ls("val_"+id)){app.innerHTML='<div class="empty"><b>¡Gracias! 💛</b>Ya nos diste tu opinión sobre '+esc(r.destino)+'.<button class="btn bgold" style="margin-top:14px" onclick="ir(\'\')">Ver próximos viajes</button></div>';return}
+  VAL={id:id,destino:r.destino,e:0};
+  app.innerHTML='<section class="hero"><h1>¿Qué tal en '+esc(r.destino)+'?</h1><p>Tu opinión nos ayuda a mejorar y a que más gente se anime a viajar con nosotros.</p></section>'+
+   '<div class="box big"><h2 style="text-align:center;font-size:19px">Toca las estrellas</h2><div class="stars" id="v-st">'+[1,2,3,4,5].map(function(n){return '<button type="button" onclick="setEst('+n+')" aria-label="'+n+' estrellas">★</button>'}).join("")+'</div>'+
+   '<div id="v-lb" style="text-align:center;font-size:17px;font-weight:900;min-height:26px"></div>'+
+   '<label for="v-tx">Cuéntanos qué te pareció (si quieres)</label><textarea id="v-tx" maxlength="400" placeholder="El viaje, el autobús, la organización…"></textarea>'+
+   (yaReg()?'':'<label for="v-nom">Tu nombre</label><input id="v-nom" autocomplete="name" placeholder="Ej. María López"><label for="v-tel">Tu teléfono</label><input id="v-tel" type="tel" inputmode="numeric" placeholder="600 000 000">')+
+   '<div class="err" id="v-err"></div><button class="btn bgold" id="v-ok" style="margin-top:12px" onclick="enviaVal()">Enviar mi opinión</button></div>'+pie()})
+ .catch(function(){app.innerHTML='<div class="empty"><b>Sin conexión</b>Inténtalo de nuevo en un momento.</div>'})}
+function setEst(n){VAL.e=n;[].forEach.call(document.querySelectorAll("#v-st button"),function(b,i){b.classList.toggle("on",i<n)});document.getElementById("v-lb").textContent=["","Muy mal 😞","Regular 😕","Bien 🙂","Muy bien 😊","¡Excelente! 🤩"][n]}
+function enviaVal(){var e=document.getElementById("v-err"),mal=function(m){e.textContent=m;toast(m)};if(!VAL.e)return mal("Toca las estrellas para puntuar.");
+ var nom=yaReg()?REG.nombre:document.getElementById("v-nom").value.trim(),tel=yaReg()?REG.tel:document.getElementById("v-tel").value.replace(/\D/g,"").replace(/^0034|^34(?=\d{9}$)/,"");
+ if(nom.length<2)return mal("Escribe tu nombre.");if(tel.length!==9)return mal("El teléfono debe tener 9 números.");
+ var b=document.getElementById("v-ok");b.disabled=true;b.textContent="Enviando…";
+ DBR.ref("valoraciones").push({vId:VAL.id,destino:VAL.destino,nombre:nom.slice(0,80),tel:tel,estrellas:VAL.e,texto:document.getElementById("v-tx").value.trim().slice(0,400),ts:SV.TIMESTAMP})
+  .then(function(){ls("val_"+VAL.id,1);document.getElementById("app").innerHTML='<div class="okv" style="padding-top:30px"><div class="ic">✓</div><h3>¡Gracias, '+esc(nom.split(" ")[0])+'!</h3><p>'+(VAL.e>=4?"Nos alegra muchísimo que lo disfrutaras 💛":"Gracias por contárnoslo. Lo tendremos muy en cuenta para mejorar.")+'</p><button class="btn bgold" style="margin-top:16px" onclick="ir(\'\')">Ver próximos viajes</button></div>'})
+  .catch(function(){b.disabled=false;b.textContent="Enviar mi opinión";mal("No se pudo enviar. Inténtalo otra vez.")})}
+/* ---- reseñas publicadas ---- */
+var RESE={};
+DBR.ref("web_publica/resenas").limitToLast(30).on("value",function(s){RESE=s.val()||{};if(VIEW==="lista")pinta()},function(){});
+function resenasHTML(){var a=Object.keys(RESE||{}).map(function(k){return RESE[k]}).filter(function(x){return x&&x.texto}).sort(function(a,b){return (b.ts||0)-(a.ts||0)}).slice(0,8);if(!a.length)return"";
+ return '<div class="sec" style="margin-top:22px">⭐ Lo que dicen nuestros viajeros</div><div class="revs">'+a.map(function(x){var n=Math.max(1,Math.min(5,+x.estrellas||5));
+  return '<div class="rev"><div class="st">'+"★★★★★".slice(0,n)+'<span>'+"★★★★★".slice(0,5-n)+'</span></div><p>“'+esc(x.texto)+'”</p><small><b>'+esc(x.nombre)+'</b> · '+esc(x.destino)+'</small></div>'}).join("")+'</div>'}
 /* ---- hojas ---- */
 function sheet(h,b,f){document.getElementById("sheet").innerHTML='<div class="sh-h">'+h+'<button class="sh-x" onclick="cerrar()" aria-label="Cerrar">✕</button></div><div class="sh-b">'+b+'</div>'+(f?'<div class="sh-f">'+f+'</div>':"");
  document.getElementById("ov").classList.add("on");document.body.style.overflow="hidden"}
